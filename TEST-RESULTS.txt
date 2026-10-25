@@ -35,3 +35,12 @@ Automatic startup update (2026-10-25):
 - Internal-disk plug-in enabled in Classic; bridge state confirmed fresh.
 - Login itself and physical SSD disconnection were not tested.
 - Published v0.2.0 release assets remain unchanged.
+
+Response latency update (2026-10-25):
+- Vision recognition runs off the main wheel-event run loop.
+- Initial batching delay reduced from 60 ms to 16 ms; queued batches start immediately after acknowledgement.
+- Reply polling reduced from 20 ms to 10 ms with the same nominal 2-second timeout.
+- Plug-in keeps tracking across consecutive changes to the same control and polls at 20 ms while tracking (40 ms idle).
+- Existing logic and 13 numeric fixtures passed; macOS build passed.
+- Installed internally, permissions restored, plug-in reloaded without diagnostics.
+- User confirmed improved responsiveness with the physical mouse after installation; no end-to-end latency measurement was taken.

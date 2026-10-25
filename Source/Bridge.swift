@@ -37,8 +37,8 @@ final class LightroomBridge {
         let seq=UUID().uuidString
         let value=String(format:"%.6f",locale:Locale(identifier:"en_US_POSIX"),amount)
         try "\(seq)|\(absolute ? "set" : "adjust")|\(parameter)|\(value)|\(photo)".write(to:folder.appendingPathComponent("command.txt"),atomically:true,encoding:.utf8)
-        for _ in 0..<100 {
-            try await Task.sleep(nanoseconds:20_000_000)
+        for _ in 0..<200 {
+            try await Task.sleep(nanoseconds:10_000_000)
             guard let text=try? String(contentsOf:folder.appendingPathComponent("reply.txt"),encoding:.utf8) else {continue}
             let p=text.components(separatedBy:"|")
             guard p.first==seq else {continue}

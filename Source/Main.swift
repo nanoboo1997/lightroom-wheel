@@ -255,6 +255,8 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
         config.showsCursor = false; config.ignoreShadowsSingleWindow = true
         let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
         mappingSummary = "SC frame=\(frame) content=\(filter.contentRect) crop=\(crop) image=\(image.width)x\(image.height)"
+        // Vision is synchronous: keep it off the main run loop that receives wheel events.
+        var boxes = try await Task.detached(priority: .userInitiated) { () throws -> [TextBox] in
         let request = VNRecognizeTextRequest(); request.recognitionLevel = .accurate
         request.recognitionLanguages = ["en-US"]; request.usesLanguageCorrection = false
         request.minimumTextHeight = 0.008
@@ -266,6 +268,8 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
             let global = CGRect(x: crop.minX + r.minX * crop.width, y: crop.minY + (1-r.maxY)*crop.height, width: r.width*crop.width, height: r.height*crop.height)
             boxes.append(.init(text: candidate.string, rect: global, confidence: candidate.confidence))
         }
+        return boxes
+        }.value
         // OCR identifies labels only; the SDK is authoritative for numeric values.
         let sdk = try bridge.state()
         guard sdk.module == "develop", sdk.count == 1 else { return [] }
@@ -341,7 +345,7 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
         else { pending = (row, ticks, fine, fast) }
         if !editing {
             editing = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { self.flushEdit() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.016) { self.flushEdit() }
         }
         return true
     }
@@ -355,7 +359,7 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
                 editing = false
                 if pending != nil && enabled {
                     editing = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) { self.flushEdit() }
+                    DispatchQueue.main.async { self.flushEdit() }
                 }
             }
             do {

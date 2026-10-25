@@ -29,6 +29,7 @@ local lastSeq=previous and split(previous)[1] or '' -- Never replay the previous
 local lastWrite=0
 local lastAdjustment=0
 local tracking=false
+local trackedParameter=nil
 
 Tasks.startAsyncTask(function()
     while _G.LRW_EPOCH==epoch do
@@ -74,7 +75,11 @@ Tasks.startAsyncTask(function()
                         else
                             local nextValue=c[2]=='set' and delta or before+delta
                             nextValue=math.max(range[1],math.min(range[2],nextValue))
-                            Develop.startTracking(param)
+                            if not tracking or trackedParameter~=param then
+                                if tracking then Develop.stopTracking() end
+                                Develop.startTracking(param)
+                                trackedParameter=param
+                            end
                             Develop.setValue(param,nextValue)
                             tracking=true;lastAdjustment=now
                             Tasks.yield()
@@ -85,9 +90,10 @@ Tasks.startAsyncTask(function()
                     end
                 end
             end
-            if tracking and now-lastAdjustment>0.3 and module=='develop' then Develop.stopTracking();tracking=false end
+            if tracking and now-lastAdjustment>0.3 and module=='develop' then Develop.stopTracking();tracking=false;trackedParameter=nil end
         end)
         if not ok then write('error.txt',tostring(err)) end
-        Tasks.sleep(0.04)
+        -- Poll faster only during an active adjustment; keep idle work unchanged.
+        Tasks.sleep(tracking and 0.02 or 0.04)
     end
 end)
