@@ -1,0 +1,31 @@
+Lightroom Wheel 0.2 — 2026-10-25
+Environment: Mac Apple Silicon / Lightroom Classic 15.6 / JPEG / one selected photo.
+
+Verified:
+- Native arm64 app builds and ad-hoc signature verification passes.
+- Logic regression tests pass: boundaries, precision, wheel accumulation,
+  visible/scrolled Basic context, global window origin (38pt), duplicate tooltip label.
+- Lua bridge reads 13 Basic values and sets values through LrDevelopController.
+- Wheel event -> SDK adjustment was confirmed with Exposure 0.00 -> 0.05.
+- Earlier automated round trip confirmed 0.00 -> 0.05 -> 0.00, but this alone
+  did not prove physical pointer alignment. It led to the coordinate correction.
+- Final pointer correction removes a duplicated 38pt Y adjustment.
+- After installing the corrected binary, the user tested a physical mouse and
+  explicitly confirmed that hovering Exposure now changes Exposure correctly.
+- Latest helper UI reports 13 detected sliders and an SDK-confirmed Exposure change.
+
+Limits:
+- Final full automated round trip was interrupted by foreground-app changes.
+- No claim of complete manual regression of all 13 sliders or multiple displays.
+- JPEG Temp only; RAW Kelvin range remains unsupported.
+- OCR may temporarily miss a label; frontmost Develop and one-photo guards remain active.
+
+Image state:
+- Highlights, Shadows and Whites changed during the misaligned test were restored to 0.
+- Subsequent user adjustments after the physical-pointer confirmation are left intact.
+- No original image file was overwritten.
+
+Publication build verification:
+- Clean source-only checkout builds an arm64 macOS 14.2-targeted app.
+- Logic and synthetic numeric OCR suites pass (13/13 numeric values and shifted-window coordinates).
+- Ad-hoc signature verifies. No live Lightroom session is exercised by CI.

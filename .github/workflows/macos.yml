@@ -1,0 +1,21 @@
+name: macOS build and tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run logic and synthetic OCR tests
+        run: ./test.sh
+      - name: Build Apple Silicon app
+        run: ./build.sh
+      - name: Package app and plug-in
+        run: python3 package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lightroom-Wheel-AppleSilicon
+          path: dist/Lightroom-Wheel-v0.2.0-AppleSilicon.zip
