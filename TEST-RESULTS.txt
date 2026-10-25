@@ -44,3 +44,10 @@ Response latency update (2026-10-25):
 - Existing logic and 13 numeric fixtures passed; macOS build passed.
 - Installed internally, permissions restored, plug-in reloaded without diagnostics.
 - User confirmed improved responsiveness with the physical mouse after installation; no end-to-end latency measurement was taken.
+
+Lightroom restart fix (2026-10-25):
+- Removed the duplicate external-SSD registration in Classic; kept only the internal-disk plug-in enabled.
+- Added File menu startup entry and enable/disable lifecycle hooks. Start now runs Init.lua instead of only showing a message.
+- Worker generation uses a unique table to avoid same-clock-tick collisions.
+- Quit and reopened Classic; internal bridge resumed updating after Classic was brought forward, without Reload.
+- User confirmed Exposure wheel adjustment works after reopening Classic.

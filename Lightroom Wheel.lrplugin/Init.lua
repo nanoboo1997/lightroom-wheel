@@ -22,7 +22,7 @@ local function split(s)
 end
 local params={Temp='Temperature',Tint='Tint',Exposure='Exposure',Contrast='Contrast',Highlights='Highlights',Shadows='Shadows',Whites='Whites',Blacks='Blacks',Texture='Texture',Clarity='Clarity',Dehaze='Dehaze',Vibrance='Vibrance',Saturation='Saturation'}
 local bounds={Temp={-100,100},Tint={-100,100},Exposure={-5,5},Contrast={-100,100},Highlights={-100,100},Shadows={-100,100},Whites={-100,100},Blacks={-100,100},Texture={-100,100},Clarity={-100,100},Dehaze={-100,100},Vibrance={-100,100},Saturation={-100,100}}
-local epoch=tostring(Date.currentTime())
+local epoch={} -- Unique even when enable/init happen within the same clock tick.
 _G.LRW_EPOCH=epoch
 local previous=read('command.txt')
 local lastSeq=previous and split(previous)[1] or '' -- Never replay the previous session's command.
@@ -30,6 +30,7 @@ local lastWrite=0
 local lastAdjustment=0
 local tracking=false
 local trackedParameter=nil
+write('started.txt',tostring(Date.currentTime()))
 
 Tasks.startAsyncTask(function()
     while _G.LRW_EPOCH==epoch do

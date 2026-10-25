@@ -1,1 +1,2 @@
-import('LrDialogs').message('Lightroom Wheel Free Bridge','Local bridge is loaded. Open the Lightroom Wheel helper and choose Start.','info')
+-- Restart the worker rather than just displaying an informational dialog.
+dofile(import('LrPathUtils').child(_PLUGIN.path, 'Init.lua'))
