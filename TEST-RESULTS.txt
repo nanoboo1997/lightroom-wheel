@@ -29,3 +29,9 @@ Publication build verification:
 - Clean source-only checkout builds an arm64 macOS 14.2-targeted app.
 - Logic and synthetic numeric OCR suites pass (13/13 numeric values and shifted-window coordinates).
 - Ad-hoc signature verifies. No live Lightroom session is exercised by CI.
+Automatic startup update (2026-10-25):
+- Updated helper built and restarted through the local LaunchAgent on the development Mac.
+- UI showed both permissions ready and the Stop button without clicking Start.
+- Internal-disk plug-in enabled in Classic; bridge state confirmed fresh.
+- Login itself and physical SSD disconnection were not tested.
+- Published v0.2.0 release assets remain unchanged.

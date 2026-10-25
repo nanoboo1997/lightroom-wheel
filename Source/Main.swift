@@ -15,6 +15,8 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
     var detailLabel: NSTextField!
     var enableButton: NSButton!
     var enabled = false
+    var wantsAutomaticStart = true
+    var lastStartAttempt = Date.distantPast
     var scanning = false
     var editing = false
     var rows: [SliderRow] = []
@@ -41,8 +43,8 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
             self?.tick()
         }
         updateUI()
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        attemptAutomaticStart()
+        if !AXIsProcessTrusted() || !CGPreflightScreenCaptureAccess() { show() }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { show(); return true }
 
@@ -176,7 +178,8 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
     @objc func screenAccess() { _ = CGRequestScreenCaptureAccess(); updateUI() }
     @objc func refresh() { rows = []; diagnostic = ""; updateUI(); tick() }
     @objc func toggle() {
-        if enabled { enabled = false; rows = []; pending = nil; updateUI(); return }
+        if enabled { wantsAutomaticStart = false; enabled = false; rows = []; pending = nil; updateUI(); return }
+        wantsAutomaticStart = true
         guard AXIsProcessTrusted(), CGPreflightScreenCaptureAccess() else {
             let alert = NSAlert(); alert.messageText = "ยังขาดสิทธิ์ที่จำเป็น"
             alert.informativeText = "กดปุ่มอนุญาตทั้งสองด้านบน แล้วเปิดสวิตช์ Lightroom Wheel ใน System Settings ตัวช่วยจะอ่านเฉพาะหน้าต่าง Lightroom และส่งการปรับค่าที่คุณสั่งด้วยล้อเมาส์"
@@ -209,6 +212,7 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
         return (title as? String)?.hasSuffix("- Develop") == true && (role as? String) == kAXWindowRole
     }
     func tick() {
+        attemptAutomaticStart()
         updateUI()
         guard enabled, !scanning, !editing, frontIsDevelop() else {
             if !frontIsDevelop() { rows = [] }; return
@@ -219,6 +223,20 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
             do { let found = try await detectRows(); if enabled && frontIsDevelop() { rows = found; updateUI() } }
             catch { rows = []; diagnostic = "อ่านแผงไม่สำเร็จ: \(error.localizedDescription)"; updateUI() }
         }
+    }
+
+    func attemptAutomaticStart() {
+        guard wantsAutomaticStart, !enabled, !testRunning,
+              Date().timeIntervalSince(lastStartAttempt) >= 5 else { return }
+        lastStartAttempt = Date()
+        guard AXIsProcessTrusted(), CGPreflightScreenCaptureAccess() else {
+            diagnostic = "รอสิทธิ์ Accessibility และอ่านหน้าต่าง"; return
+        }
+        do { _ = try bridge.state() } catch {
+            diagnostic = "รอเปิด Lightroom Classic และปลั๊กอิน · จะเชื่อมต่ออัตโนมัติ"; return
+        }
+        guard installTap() else { diagnostic = "เปิดตัวรับล้อไม่ได้ · ลองใหม่อัตโนมัติ"; return }
+        rows = []; diagnostic = ""; enabled = true
     }
 
     func detectRows() async throws -> [SliderRow] {

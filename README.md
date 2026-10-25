@@ -23,7 +23,11 @@ The helper is free; it does not include Lightroom or replace Adobe's licensing.
 2. Keep `Lightroom Wheel.app` and `Lightroom Wheel.lrplugin` beside each other.
 3. In Classic, open **File → Plug-in Manager → Add**, select `Lightroom Wheel.lrplugin`, and enable it. If needed, choose **File → Plug-in Extras → Start Lightroom Wheel Bridge** or reload it in Plug-in Manager.
 4. Open the helper. Grant **Accessibility** and **Screen Recording** to **Lightroom Wheel** in macOS System Settings, then reopen the helper.
-5. Click **เริ่มใช้งาน** (Start), switch to Classic, select one photo in Develop, and hover the slider track before turning the wheel.
+5. The helper starts automatically when permissions and the plug-in are ready. Switch to Classic, select one photo in Develop, and hover the slider track before turning the wheel.
+
+For use without an external SSD, keep the complete folder in `~/Applications/LightroomWheel` on the internal disk and select that plug-in in Classic. Disable the old external-disk plug-in after moving. To launch at login, add the installed app to **System Settings → General → Login Items → Open at Login** on each Mac.
+
+Automatic startup is available in the source on `main`; the published v0.2.0 ZIP still requires clicking Start. Build from source for the updated behavior. Startup retries every five seconds while waiting for permissions or the plug-in, without activating Classic. Pause lasts for the current session; reopening starts automatically again. Quit exits until you open the app or next log in.
 
 The app is ad-hoc signed, **not notarized**. macOS may require explicit approval to open a downloaded build. You can also build from the source below. Rebuilding changes its signature and may require refreshing permissions for this app.
 
