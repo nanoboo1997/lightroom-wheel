@@ -88,6 +88,6 @@ struct WheelAccumulator {
         residual += continuous ? delta / 12 : delta
         let ticks = Int(residual.rounded(.towardZero))
         residual -= Double(ticks)
-        return max(-8, min(8, ticks))
+        return ticks
     }
 }

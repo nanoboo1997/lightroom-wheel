@@ -341,7 +341,7 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
         lastWheel += " · matched \(row.spec.name) ticks=\(ticks)"
         guard ticks != 0 else { return true }
         let fine = event.flags.contains(.maskShift), fast = event.flags.contains(.maskControl)
-        if let old = pending, old.0.spec.name == row.spec.name { pending = (row, max(-20,min(20,old.1+ticks)), fine, fast) }
+        if let old = pending, old.0.spec.name == row.spec.name { pending = (row, old.1+ticks, fine, fast) }
         else { pending = (row, ticks, fine, fast) }
         if !editing {
             editing = true
@@ -368,9 +368,21 @@ final class WheelApp: NSObject, NSApplicationDelegate, @unchecked Sendable {
                 let pointer = CGEvent(source: nil)!.location
                 guard testRunning || row.track.insetBy(dx: -2, dy: -2).contains(pointer) else { lastWheel += " · pointer moved"; rows = fresh; return }
                 let state = try bridge.state()
+                // Include input received while capture/OCR was running instead of
+                // sending an old batch and making the user wait for another scan.
+                var totalTicks = ticks
+                if let queued = pending, queued.0.spec.name == row.spec.name,
+                   queued.0.windowID == row.windowID, queued.0.window == row.window,
+                   queued.2 == fine, queued.3 == fast {
+                    totalTicks += queued.1
+                    pending = nil
+                }
+                guard totalTicks != 0 else { rows = fresh; return }
                 let quantum = (fine ? row.spec.fine : row.spec.step) * (fast ? 5 : 1)
-                let reply = try await bridge.command(row.spec.name, amount: Double(ticks)*quantum, photo: state.photo)
-                let expected = row.spec.adjusted(reply.before,ticks:ticks,fineMode:fine,fast:fast)
+                let span = row.spec.maximum-row.spec.minimum
+                let amount = max(-span, min(span, Double(totalTicks)*quantum))
+                let reply = try await bridge.command(row.spec.name, amount: amount, photo: state.photo)
+                let expected = row.spec.adjusted(reply.before,ticks:totalTicks,fineMode:fine,fast:fast)
                 guard abs(reply.after-expected)<0.004 else { throw BridgeError.message("ค่าที่ปลั๊กอินยืนยันไม่ตรงกับคำสั่ง") }
                 lastWheel += " · SDK verified \(reply.before) → \(reply.after)"
                 detailLabel.stringValue = "ยืนยันผ่าน SDK · \(row.spec.name): \(row.spec.format(reply.before)) → \(row.spec.format(reply.after))"

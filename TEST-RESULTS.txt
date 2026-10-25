@@ -51,3 +51,10 @@ Lightroom restart fix (2026-10-25):
 - Worker generation uses a unique table to avoid same-clock-tick collisions.
 - Quit and reopened Classic; internal bridge resumed updating after Classic was brought forward, without Reload.
 - User confirmed Exposure wheel adjustment works after reopening Classic.
+
+Rapid wheel input update (2026-10-25):
+- Removed per-event 8-tick and pending-batch 20-tick truncation.
+- Includes matching input received during OCR in the same verified command.
+- Command amounts remain bounded by each slider full range; per-tick steps unchanged.
+- Added accelerated positive/negative wheel regression checks; tests and build passed.
+- Installed internally and verified both permissions ready. User confirmed that values keep up better when turning the physical wheel quickly.

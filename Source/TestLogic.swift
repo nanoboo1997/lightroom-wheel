@@ -51,6 +51,9 @@ import CoreGraphics
         precondition(accumulator.consume(delta: 6, continuous: true, control: "Exposure", time: 0.1) == 0)
         precondition(accumulator.consume(delta: 6, continuous: true, control: "Exposure", time: 0.2) == 1)
         precondition(accumulator.consume(delta: -12, continuous: true, control: "Contrast", time: 0.3) == -1)
+        // Accelerated wheels must preserve all detents, including direction changes.
+        precondition(accumulator.consume(delta: 35, continuous: false, control: "Exposure", time: 0.4) == 35)
+        precondition(accumulator.consume(delta: -27, continuous: false, control: "Exposure", time: 0.5) == -27)
         print("PASS: limits, precision, OCR gating, row hit areas, wheel accumulation")
     }
 }
